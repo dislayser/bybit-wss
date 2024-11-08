@@ -36,11 +36,16 @@ class WS:
                 asyncio.create_task(self.handle_session()),
             ])
 
+    # Сообщение которые отправляется по интервалу
+    def ping_msg(self):
+        msg = '{"op":"ping","args":[' + str(int(time.time() * 1000)) + ']}'
+        return msg
     
     async def handle_session(self):
         while self.run:
             try:
                 message = await self.queue.get()
+                
                 with gzip.GzipFile(fileobj=io.BytesIO(message)) as f:
                     decompressed_data = f.read()
                 # Теперь декодируем полученные данные в строку
@@ -60,7 +65,7 @@ class WS:
             try:
                 headers = json.loads(self.params['headers'])
                 self.ws = await websockets.connect(
-                    self.params['wss'],
+                    uri=self.params['wss'],
                     extra_headers=headers,
                     ssl=ssl_context
                 )
